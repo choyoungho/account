@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+body {
+  background-color: #f0f4f8;
+  color: #2d3748;
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100vh;
+}
+
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
