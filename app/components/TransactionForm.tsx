@@ -1,12 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  TxType,
-  INCOME_CATS,
-  EXPENSE_CATS,
-  toLocalISO,
-} from '@/lib/budget';
+import { TxType, INCOME_CATS, EXPENSE_CATS, toLocalISO } from '@/lib/budget';
 
 interface TransactionFormProps {
   onAdd: (payload: {
@@ -41,94 +36,117 @@ export default function TransactionForm({ onAdd }: TransactionFormProps) {
     setDesc('');
   }
 
+  const isIncome = type === 'income';
+
   return (
-    <div className="bg-white rounded-xl p-5 mb-4 shadow-sm">
-      <h2 className="text-base font-bold text-gray-600 mb-3 flex items-center gap-1.5">
-        ➕ 내역 추가
-      </h2>
-
-      {/* 유형 토글 */}
-      <div className="flex gap-2 mb-4">
-        <button
-          onClick={() => handleTypeChange('income')}
-          className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border-2 transition-all ${
-            type === 'income'
-              ? 'bg-green-50 border-green-500 text-green-700'
-              : 'bg-white border-gray-200 text-gray-500'
-          }`}
-        >
-          💚 수입
-        </button>
-        <button
-          onClick={() => handleTypeChange('expense')}
-          className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border-2 transition-all ${
-            type === 'expense'
-              ? 'bg-red-50 border-red-500 text-red-600'
-              : 'bg-white border-gray-200 text-gray-500'
-          }`}
-        >
-          ❤️ 지출
-        </button>
-      </div>
-
-      {/* 날짜 & 금액 */}
-      <div className="grid grid-cols-2 gap-2.5 mb-2.5">
-        <div>
-          <label className="block text-xs text-gray-500 font-semibold mb-1">날짜</label>
-          <input
-            type="date"
-            value={date}
-            onChange={e => setDate(e.target.value)}
-            className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-sm bg-gray-50 focus:border-indigo-500 focus:bg-white outline-none transition-colors"
-          />
-        </div>
-        <div>
-          <label className="block text-xs text-gray-500 font-semibold mb-1">금액 (원)</label>
-          <input
-            type="number"
-            value={amount}
-            onChange={e => setAmount(e.target.value)}
-            placeholder="0"
-            min="0"
-            className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-sm bg-gray-50 focus:border-indigo-500 focus:bg-white outline-none transition-colors"
-          />
+    <div className="ms-card" style={{ marginBottom: 16 }}>
+      {/* 섹션 헤더 */}
+      <div style={{
+        padding: '10px 16px',
+        borderBottom: '1px solid var(--ms-border)',
+        background: 'var(--ms-surface-2)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ms-text-1)' }}>
+          내역 추가
+        </span>
+        {/* 수입/지출 토글 — MS ChoiceGroup 스타일 */}
+        <div style={{ display: 'flex', gap: 0, border: '1px solid var(--ms-border-2)', borderRadius: 2, overflow: 'hidden' }}>
+          {(['income', 'expense'] as TxType[]).map(t => (
+            <button
+              key={t}
+              onClick={() => handleTypeChange(t)}
+              style={{
+                padding: '4px 14px',
+                fontSize: 12,
+                fontWeight: 600,
+                fontFamily: 'inherit',
+                cursor: 'pointer',
+                border: 'none',
+                borderRight: t === 'income' ? '1px solid var(--ms-border-2)' : 'none',
+                background: type === t
+                  ? (t === 'income' ? 'var(--ms-green)' : 'var(--ms-red)')
+                  : 'var(--ms-surface)',
+                color: type === t ? '#fff' : 'var(--ms-text-2)',
+                transition: 'background .1s, color .1s',
+              }}
+            >
+              {t === 'income' ? '↑ 수입' : '↓ 지출'}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* 카테고리 & 내용 */}
-      <div className="grid grid-cols-2 gap-2.5 mb-3">
-        <div>
-          <label className="block text-xs text-gray-500 font-semibold mb-1">카테고리</label>
-          <select
-            value={category}
-            onChange={e => setCategory(e.target.value)}
-            className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-sm bg-gray-50 focus:border-indigo-500 focus:bg-white outline-none transition-colors"
+      {/* 폼 바디 */}
+      <div style={{ padding: 16 }}>
+        {/* 좌측 강조 바 */}
+        <div style={{
+          borderLeft: `3px solid ${isIncome ? 'var(--ms-green)' : 'var(--ms-red)'}`,
+          paddingLeft: 12,
+        }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+            <div>
+              <label className="ms-label">날짜</label>
+              <input
+                type="date"
+                value={date}
+                onChange={e => setDate(e.target.value)}
+                className="ms-input"
+              />
+            </div>
+            <div>
+              <label className="ms-label">금액 (원)</label>
+              <input
+                type="number"
+                value={amount}
+                onChange={e => setAmount(e.target.value)}
+                placeholder="0"
+                min="0"
+                className="ms-input"
+                style={{ fontVariantNumeric: 'tabular-nums' }}
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+            <div>
+              <label className="ms-label">카테고리</label>
+              <select
+                value={category}
+                onChange={e => setCategory(e.target.value)}
+                className="ms-input"
+              >
+                {cats.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="ms-label">내용</label>
+              <input
+                type="text"
+                value={desc}
+                onChange={e => setDesc(e.target.value)}
+                placeholder="간단한 설명"
+                onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+                className="ms-input"
+              />
+            </div>
+          </div>
+
+          <button
+            className="ms-btn-primary"
+            onClick={handleSubmit}
+            style={{
+              width: '100%',
+              justifyContent: 'center',
+              padding: '8px 16px',
+              background: isIncome ? 'var(--ms-green)' : 'var(--ms-red)',
+              borderColor: isIncome ? 'var(--ms-green)' : 'var(--ms-red)',
+            }}
           >
-            {cats.map(c => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs text-gray-500 font-semibold mb-1">내용</label>
-          <input
-            type="text"
-            value={desc}
-            onChange={e => setDesc(e.target.value)}
-            placeholder="간단한 설명"
-            onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-            className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-sm bg-gray-50 focus:border-indigo-500 focus:bg-white outline-none transition-colors"
-          />
+            {isIncome ? '↑' : '↓'} 추가하기
+          </button>
         </div>
       </div>
-
-      <button
-        onClick={handleSubmit}
-        className="w-full py-3 text-white font-bold rounded-lg text-sm transition-opacity hover:opacity-90"
-        style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)' }}
-      >
-        추가하기
-      </button>
     </div>
   );
 }

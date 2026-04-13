@@ -2,13 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useTransactions } from '@/hooks/useTransactions';
-import {
-  getWeekStart,
-  getWeekDates,
-  sumBy,
-  formatMoney,
-  toLocalISO,
-} from '@/lib/budget';
+import { getWeekStart, getWeekDates, sumBy, formatMoney, toLocalISO } from '@/lib/budget';
 import SummaryBar from './SummaryBar';
 import CategoryChart from './CategoryChart';
 import DateNav from './DateNav';
@@ -20,10 +14,8 @@ export default function WeeklyTab() {
   const [offset, setOffset] = useState(0);
 
   const ws = getWeekStart(offset);
-  const we = new Date(ws);
-  we.setDate(ws.getDate() + 6);
-
-  const weekLabel = `${ws.getMonth() + 1}/${ws.getDate()} ~ ${we.getMonth() + 1}/${we.getDate()}`;
+  const we = new Date(ws); we.setDate(ws.getDate() + 6);
+  const weekLabel = `${ws.getFullYear()}년 ${ws.getMonth() + 1}월 ${ws.getDate()}일 ~ ${we.getMonth() + 1}월 ${we.getDate()}일`;
   const dates = getWeekDates(offset);
 
   const weekTxs = useMemo(
@@ -31,10 +23,9 @@ export default function WeeklyTab() {
     [transactions, dates]
   );
 
-  const totalIncome = sumBy(weekTxs, 'income');
+  const totalIncome  = sumBy(weekTxs, 'income');
   const totalExpense = sumBy(weekTxs, 'expense');
 
-  // 카테고리별 집계
   const catMap = useMemo(() => {
     const m: Record<string, number> = {};
     weekTxs.filter(t => t.type === 'expense').forEach(t => {
@@ -45,6 +36,11 @@ export default function WeeklyTab() {
 
   return (
     <div>
+      <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ width: 3, height: 18, background: 'var(--ms-blue)' }} />
+        <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--ms-text-1)' }}>주간 정산</span>
+      </div>
+
       <DateNav
         label={weekLabel}
         onPrev={() => setOffset(o => o - 1)}
@@ -60,16 +56,22 @@ export default function WeeklyTab() {
       />
 
       {/* 일별 테이블 */}
-      <div className="bg-white rounded-xl p-5 mb-4 shadow-sm">
-        <h2 className="text-base font-bold text-gray-600 mb-3">📋 일별 내역</h2>
-        <table className="w-full border-collapse text-sm">
+      <div className="ms-card" style={{ marginBottom: 12, overflow: 'hidden' }}>
+        <div style={{
+          padding: '8px 14px',
+          background: 'var(--ms-surface-2)',
+          borderBottom: '1px solid var(--ms-border)',
+          fontSize: 13, fontWeight: 600, color: 'var(--ms-text-1)',
+        }}>
+          일별 수입·지출
+        </div>
+        <table className="ms-table">
           <thead>
             <tr>
-              {['날짜', '수입', '지출', '잔액'].map(h => (
-                <th key={h} className="text-left px-2.5 py-2 bg-gray-50 text-gray-500 text-xs font-bold border-b-2 border-gray-200">
-                  {h}
-                </th>
-              ))}
+              <th>날짜</th>
+              <th style={{ textAlign: 'right' }}>수입</th>
+              <th style={{ textAlign: 'right' }}>지출</th>
+              <th style={{ textAlign: 'right' }}>잔액</th>
             </tr>
           </thead>
           <tbody>
@@ -80,56 +82,67 @@ export default function WeeklyTab() {
               const bal = inc - exp;
               const d = new Date(dateStr + 'T00:00:00');
               const isToday = dateStr === today;
-              const label = `${d.getMonth() + 1}/${d.getDate()} (${DAY_NAMES[d.getDay()]})`;
+              const dow = d.getDay();
+              const dayColor = dow === 6 ? 'var(--ms-red)' : dow === 0 ? 'var(--ms-blue)' : 'inherit';
 
               return (
-                <tr key={dateStr} style={{ background: isToday ? '#f0f0ff' : undefined }}>
-                  <td className="px-2.5 py-2.5 border-b border-gray-100">
-                    <b>{label}</b>
+                <tr key={dateStr} style={isToday ? { background: 'var(--ms-blue-xlight)' } : {}}>
+                  <td style={{ color: dayColor }}>
                     {isToday && (
-                      <span className="ml-1.5 text-xs bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-bold">오늘</span>
+                      <span style={{
+                        marginRight: 6, background: 'var(--ms-blue)', color: '#fff',
+                        fontSize: 10, fontWeight: 700, padding: '1px 5px', borderRadius: 1,
+                      }}>TODAY</span>
                     )}
+                    <span style={{ fontWeight: isToday ? 700 : 400 }}>
+                      {d.getMonth() + 1}/{d.getDate()} ({DAY_NAMES[dow]})
+                    </span>
                   </td>
-                  <td className="px-2.5 py-2.5 border-b border-gray-100 font-semibold text-green-600">
+                  <td style={{ textAlign: 'right', color: 'var(--ms-green)', fontVariantNumeric: 'tabular-nums', fontWeight: inc ? 600 : 400 }}>
                     {inc ? formatMoney(inc) : '-'}
                   </td>
-                  <td className="px-2.5 py-2.5 border-b border-gray-100 font-semibold text-red-500">
+                  <td style={{ textAlign: 'right', color: 'var(--ms-red)', fontVariantNumeric: 'tabular-nums', fontWeight: exp ? 600 : 400 }}>
                     {exp ? formatMoney(exp) : '-'}
                   </td>
-                  <td
-                    className="px-2.5 py-2.5 border-b border-gray-100 font-bold"
-                    style={{ color: bal >= 0 ? '#4f46e5' : '#e53e3e' }}
-                  >
-                    {bal >= 0 ? '+' : '-'}{formatMoney(bal)}
+                  <td style={{
+                    textAlign: 'right', fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+                    color: bal >= 0 ? 'var(--ms-blue)' : 'var(--ms-red)',
+                  }}>
+                    {bal >= 0 ? '+' : ''}{formatMoney(bal) !== '₩0' || bal === 0 ? (bal >= 0 ? '' : '-') + formatMoney(bal) : '-'}
                   </td>
                 </tr>
               );
             })}
-
-            {/* 합계 행 */}
-            <tr>
-              <td className="px-2.5 py-2.5 font-bold bg-gray-50 border-t-2 border-gray-200">합계</td>
-              <td className="px-2.5 py-2.5 font-bold text-green-600 bg-gray-50 border-t-2 border-gray-200">
-                {formatMoney(totalIncome)}
-              </td>
-              <td className="px-2.5 py-2.5 font-bold text-red-500 bg-gray-50 border-t-2 border-gray-200">
-                {formatMoney(totalExpense)}
-              </td>
-              <td
-                className="px-2.5 py-2.5 font-bold bg-gray-50 border-t-2 border-gray-200"
-                style={{ color: totalIncome - totalExpense >= 0 ? '#4f46e5' : '#e53e3e' }}
-              >
+          </tbody>
+          <tfoot>
+            <tr className="ms-table-total">
+              <td style={{ fontWeight: 700 }}>합계</td>
+              <td style={{ textAlign: 'right', color: 'var(--ms-green)', fontVariantNumeric: 'tabular-nums' }}>{formatMoney(totalIncome)}</td>
+              <td style={{ textAlign: 'right', color: 'var(--ms-red)', fontVariantNumeric: 'tabular-nums' }}>{formatMoney(totalExpense)}</td>
+              <td style={{
+                textAlign: 'right', fontVariantNumeric: 'tabular-nums',
+                color: totalIncome - totalExpense >= 0 ? 'var(--ms-blue)' : 'var(--ms-red)',
+              }}>
                 {totalIncome - totalExpense >= 0 ? '+' : '-'}{formatMoney(totalIncome - totalExpense)}
               </td>
             </tr>
-          </tbody>
+          </tfoot>
         </table>
       </div>
 
       {/* 카테고리 차트 */}
-      <div className="bg-white rounded-xl p-5 mb-4 shadow-sm">
-        <h2 className="text-base font-bold text-gray-600 mb-3">📊 카테고리별 지출</h2>
-        <CategoryChart data={catMap} total={totalExpense} />
+      <div className="ms-card" style={{ overflow: 'hidden' }}>
+        <div style={{
+          padding: '8px 14px',
+          background: 'var(--ms-surface-2)',
+          borderBottom: '1px solid var(--ms-border)',
+          fontSize: 13, fontWeight: 600, color: 'var(--ms-text-1)',
+        }}>
+          카테고리별 지출
+        </div>
+        <div style={{ padding: 16 }}>
+          <CategoryChart data={catMap} total={totalExpense} />
+        </div>
       </div>
     </div>
   );

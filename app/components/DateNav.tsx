@@ -8,19 +8,21 @@ interface DateNavProps {
 
 export default function DateNav({ label, onPrev, onNext }: DateNavProps) {
   return (
-    <div className="flex items-center justify-between bg-white rounded-xl px-4 py-3 mb-4 shadow-sm">
-      <button
-        onClick={onPrev}
-        className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 hover:bg-gray-100 transition-colors"
-      >
-        ◀
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      marginBottom: 16, padding: '8px 12px',
+      background: 'var(--ms-surface)',
+      border: '1px solid var(--ms-border)',
+      borderRadius: 2,
+    }}>
+      <button className="ms-btn" style={{ padding: '4px 12px', fontSize: 13 }} onClick={onPrev}>
+        ‹ 이전
       </button>
-      <span className="font-bold text-gray-700">{label}</span>
-      <button
-        onClick={onNext}
-        className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 hover:bg-gray-100 transition-colors"
-      >
-        ▶
+      <span style={{ fontWeight: 600, color: 'var(--ms-text-1)', fontSize: 14 }}>
+        {label}
+      </span>
+      <button className="ms-btn" style={{ padding: '4px 12px', fontSize: 13 }} onClick={onNext}>
+        다음 ›
       </button>
     </div>
   );

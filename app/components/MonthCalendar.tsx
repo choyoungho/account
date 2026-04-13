@@ -4,7 +4,7 @@ import { Transaction, toLocalISO } from '@/lib/budget';
 
 interface MonthCalendarProps {
   year: number;
-  month: number; // 0-indexed
+  month: number;
   transactions: Transaction[];
 }
 
@@ -15,7 +15,6 @@ export default function MonthCalendar({ year, month, transactions }: MonthCalend
   const lastDate = new Date(year, month + 1, 0).getDate();
   const today = toLocalISO(new Date());
 
-  // 날짜별 지출 집계
   const dayExp: Record<number, number> = {};
   transactions
     .filter(t => t.type === 'expense')
@@ -24,32 +23,27 @@ export default function MonthCalendar({ year, month, transactions }: MonthCalend
       dayExp[d] = (dayExp[d] ?? 0) + t.amount;
     });
 
-  // 월요일 기준 시작 오프셋 (0=월, 6=일)
   const startOffset = (firstDay.getDay() + 6) % 7;
-
   const cells: (number | null)[] = [
     ...Array(startOffset).fill(null),
     ...Array.from({ length: lastDate }, (_, i) => i + 1),
   ];
-
-  // 7의 배수로 패딩
   while (cells.length % 7 !== 0) cells.push(null);
 
   const weeks: (number | null)[][] = [];
-  for (let i = 0; i < cells.length; i += 7) {
-    weeks.push(cells.slice(i, i + 7));
-  }
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
 
   return (
-    <table className="w-full border-collapse text-sm">
+    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
       <thead>
-        <tr>
+        <tr style={{ borderBottom: '1px solid var(--ms-border-2)' }}>
           {DAY_LABELS.map((d, i) => (
-            <th
-              key={d}
-              className="py-1.5 text-center text-xs font-bold"
-              style={{ color: i === 5 ? '#4299e1' : i === 6 ? '#e53e3e' : '#718096' }}
-            >
+            <th key={d} style={{
+              padding: '6px 4px', textAlign: 'center',
+              fontSize: 12, fontWeight: 600,
+              color: i === 5 ? '#0078d4' : i === 6 ? '#d13438' : 'var(--ms-text-2)',
+              background: 'var(--ms-surface-2)',
+            }}>
               {d}
             </th>
           ))}
@@ -59,23 +53,23 @@ export default function MonthCalendar({ year, month, transactions }: MonthCalend
         {weeks.map((week, wi) => (
           <tr key={wi}>
             {week.map((day, di) => {
-              if (!day) return <td key={di} />;
+              if (!day) return <td key={di} style={{ padding: 4 }} />;
               const iso = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
               const isToday = iso === today;
               const exp = dayExp[day];
-              const color = di === 5 ? '#4299e1' : di === 6 ? '#e53e3e' : '#2d3748';
+              const color = di === 5 ? '#0078d4' : di === 6 ? '#d13438' : 'var(--ms-text-1)';
 
               return (
-                <td
-                  key={di}
-                  className="px-0.5 py-1 text-center align-top rounded"
-                  style={{ background: isToday ? '#ede9fe' : undefined }}
-                >
-                  <div className="font-medium text-xs" style={{ color, fontWeight: isToday ? 700 : 500 }}>
+                <td key={di} style={{
+                  padding: 4, textAlign: 'center', verticalAlign: 'top',
+                  background: isToday ? 'var(--ms-blue-xlight)' : undefined,
+                  borderLeft: isToday ? '2px solid var(--ms-blue)' : undefined,
+                }}>
+                  <div style={{ fontWeight: isToday ? 700 : 400, color, fontSize: 13 }}>
                     {day}
                   </div>
                   {exp ? (
-                    <div className="text-red-500 mt-0.5" style={{ fontSize: '0.65rem' }}>
+                    <div style={{ fontSize: 10, color: 'var(--ms-red)', marginTop: 1 }}>
                       -{(exp / 10000).toFixed(1)}만
                     </div>
                   ) : null}
