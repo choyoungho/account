@@ -155,12 +155,9 @@ export default function DashboardTab() {
 
   return (
     <div>
-      {/* 섹션 타이틀 */}
-      <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div style={{ width: 3, height: 18, background: 'var(--ms-blue)' }} />
-        <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--ms-text-1)' }}>
-          {year}년 {month + 1}월 재무 현황
-        </span>
+      <div className="ms-section-title">
+        <div className="ms-section-title-bar" />
+        <span className="ms-section-title-text">{year}년 {month + 1}월 재무 현황</span>
       </div>
 
       {/* ── 월간 KPI 배너 ── */}

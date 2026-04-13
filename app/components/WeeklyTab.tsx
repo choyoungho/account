@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useTransactions } from '@/hooks/useTransactions';
-import { getWeekStart, getWeekDates, sumBy, formatMoney, toLocalISO } from '@/lib/budget';
+import { getWeekStart, getWeekDates, sumBy, formatMoney } from '@/lib/budget';
+import { generateWeeklyReport, downloadReport } from '@/lib/report';
 import SummaryBar from './SummaryBar';
 import CategoryChart from './CategoryChart';
 import DateNav from './DateNav';
@@ -34,11 +35,23 @@ export default function WeeklyTab() {
     return m;
   }, [weekTxs]);
 
+  const handleDownload = useCallback(() => {
+    const html = generateWeeklyReport(dates, transactions, weekLabel);
+    const fname = `주간_재무보고서_${dates[0]}_${dates[6]}.html`;
+    downloadReport(html, fname);
+  }, [dates, transactions, weekLabel]);
+
   return (
     <div>
-      <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div style={{ width: 3, height: 18, background: 'var(--ms-blue)' }} />
-        <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--ms-text-1)' }}>주간 정산</span>
+      {/* 섹션 헤더 */}
+      <div className="ms-section-title" style={{ justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="ms-section-title-bar" />
+          <span className="ms-section-title-text">주간 정산</span>
+        </div>
+        <button className="ms-btn-download" onClick={handleDownload}>
+          ↓ 주간 리포트
+        </button>
       </div>
 
       <DateNav
@@ -58,10 +71,10 @@ export default function WeeklyTab() {
       {/* 일별 테이블 */}
       <div className="ms-card" style={{ marginBottom: 12, overflow: 'hidden' }}>
         <div style={{
-          padding: '8px 14px',
+          padding: '9px 16px',
           background: 'var(--ms-surface-2)',
           borderBottom: '1px solid var(--ms-border)',
-          fontSize: 13, fontWeight: 600, color: 'var(--ms-text-1)',
+          fontSize: 14, fontWeight: 700, color: 'var(--ms-text-1)',
         }}>
           일별 수입·지출
         </div>
@@ -91,24 +104,24 @@ export default function WeeklyTab() {
                     {isToday && (
                       <span style={{
                         marginRight: 6, background: 'var(--ms-blue)', color: '#fff',
-                        fontSize: 10, fontWeight: 700, padding: '1px 5px', borderRadius: 1,
+                        fontSize: 11, fontWeight: 700, padding: '1px 6px', borderRadius: 2,
                       }}>TODAY</span>
                     )}
                     <span style={{ fontWeight: isToday ? 700 : 400 }}>
                       {d.getMonth() + 1}/{d.getDate()} ({DAY_NAMES[dow]})
                     </span>
                   </td>
-                  <td style={{ textAlign: 'right', color: 'var(--ms-green)', fontVariantNumeric: 'tabular-nums', fontWeight: inc ? 600 : 400 }}>
+                  <td style={{ textAlign: 'right', color: 'var(--ms-green)', fontVariantNumeric: 'tabular-nums', fontWeight: inc ? 700 : 400 }}>
                     {inc ? formatMoney(inc) : '-'}
                   </td>
-                  <td style={{ textAlign: 'right', color: 'var(--ms-red)', fontVariantNumeric: 'tabular-nums', fontWeight: exp ? 600 : 400 }}>
+                  <td style={{ textAlign: 'right', color: 'var(--ms-red)', fontVariantNumeric: 'tabular-nums', fontWeight: exp ? 700 : 400 }}>
                     {exp ? formatMoney(exp) : '-'}
                   </td>
                   <td style={{
                     textAlign: 'right', fontWeight: 700, fontVariantNumeric: 'tabular-nums',
                     color: bal >= 0 ? 'var(--ms-blue)' : 'var(--ms-red)',
                   }}>
-                    {bal >= 0 ? '+' : ''}{formatMoney(bal) !== '₩0' || bal === 0 ? (bal >= 0 ? '' : '-') + formatMoney(bal) : '-'}
+                    {bal !== 0 ? (bal >= 0 ? '+' : '-') + formatMoney(bal) : '-'}
                   </td>
                 </tr>
               );
@@ -133,10 +146,10 @@ export default function WeeklyTab() {
       {/* 카테고리 차트 */}
       <div className="ms-card" style={{ overflow: 'hidden' }}>
         <div style={{
-          padding: '8px 14px',
+          padding: '9px 16px',
           background: 'var(--ms-surface-2)',
           borderBottom: '1px solid var(--ms-border)',
-          fontSize: 13, fontWeight: 600, color: 'var(--ms-text-1)',
+          fontSize: 14, fontWeight: 700, color: 'var(--ms-text-1)',
         }}>
           카테고리별 지출
         </div>

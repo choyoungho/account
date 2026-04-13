@@ -39,12 +39,12 @@ export default function Home() {
               <rect x="1" y="11" width="8" height="8" fill="white" opacity="0.9"/>
               <rect x="11" y="11" width="8" height="8" fill="white" opacity="0.9"/>
             </svg>
-            <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.2px' }}>
+            <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-0.3px' }}>
               가계부
             </span>
           </div>
           <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.3)', margin: '0 4px' }} />
-          <span style={{ fontSize: 13, opacity: 0.85, fontWeight: 400 }}>{dateStr}</span>
+          <span style={{ fontSize: 13, opacity: 0.9, fontWeight: 500 }}>{dateStr}</span>
         </div>
 
         {/* Pivot 네비게이션 */}
@@ -55,8 +55,8 @@ export default function Home() {
               onClick={() => setActiveTab(tab.id)}
               style={{
                 padding: '10px 18px',
-                fontSize: 13,
-                fontWeight: activeTab === tab.id ? 600 : 400,
+                fontSize: 14,
+                fontWeight: activeTab === tab.id ? 700 : 500,
                 color: activeTab === tab.id ? '#fff' : 'rgba(255,255,255,0.75)',
                 background: 'none',
                 border: 'none',

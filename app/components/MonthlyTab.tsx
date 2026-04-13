@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useTransactions } from '@/hooks/useTransactions';
 import { sumBy, formatMoney } from '@/lib/budget';
+import { generateMonthlyReport, downloadReport } from '@/lib/report';
 import SummaryBar from './SummaryBar';
 import CategoryChart from './CategoryChart';
 import MonthCalendar from './MonthCalendar';
@@ -55,13 +56,19 @@ export default function MonthlyTab() {
     return m;
   }, [monthTxs]);
 
+  const handleDownload = useCallback(() => {
+    const html = generateMonthlyReport(year, month, transactions);
+    const fname = `월간_재무보고서_${year}년${month + 1}월.html`;
+    downloadReport(html, fname);
+  }, [year, month, transactions]);
+
   const section = (title: string, children: React.ReactNode) => (
     <div className="ms-card" style={{ marginBottom: 12, overflow: 'hidden' }}>
       <div style={{
-        padding: '8px 14px',
+        padding: '9px 16px',
         background: 'var(--ms-surface-2)',
         borderBottom: '1px solid var(--ms-border)',
-        fontSize: 13, fontWeight: 600, color: 'var(--ms-text-1)',
+        fontSize: 14, fontWeight: 700, color: 'var(--ms-text-1)',
       }}>
         {title}
       </div>
@@ -71,9 +78,15 @@ export default function MonthlyTab() {
 
   return (
     <div>
-      <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div style={{ width: 3, height: 18, background: 'var(--ms-blue)' }} />
-        <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--ms-text-1)' }}>월말 정산</span>
+      {/* 섹션 헤더 */}
+      <div className="ms-section-title" style={{ justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="ms-section-title-bar" />
+          <span className="ms-section-title-text">월말 정산</span>
+        </div>
+        <button className="ms-btn-download" onClick={handleDownload}>
+          ↓ 월간 리포트
+        </button>
       </div>
 
       <DateNav
@@ -118,10 +131,10 @@ export default function MonthlyTab() {
                       ({w.start.getDate()}~{w.end.getDate()}일)
                     </span>
                   </td>
-                  <td style={{ textAlign: 'right', color: 'var(--ms-green)', fontVariantNumeric: 'tabular-nums', fontWeight: winc ? 600 : 400 }}>
+                  <td style={{ textAlign: 'right', color: 'var(--ms-green)', fontVariantNumeric: 'tabular-nums', fontWeight: winc ? 700 : 400 }}>
                     {winc ? formatMoney(winc) : '-'}
                   </td>
-                  <td style={{ textAlign: 'right', color: 'var(--ms-red)', fontVariantNumeric: 'tabular-nums', fontWeight: wexp ? 600 : 400 }}>
+                  <td style={{ textAlign: 'right', color: 'var(--ms-red)', fontVariantNumeric: 'tabular-nums', fontWeight: wexp ? 700 : 400 }}>
                     {wexp ? formatMoney(wexp) : '-'}
                   </td>
                   <td style={{

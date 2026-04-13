@@ -3,9 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Transaction,
-  TxType,
   loadTransactions,
-  saveTransactions,
+  addTransaction,
+  deleteTransaction,
   toLocalISO,
 } from '@/lib/budget';
 
@@ -14,35 +14,31 @@ export function useTransactions() {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    setTransactions(loadTransactions());
-    setHydrated(true);
+    loadTransactions().then(txs => {
+      setTransactions(txs);
+      setHydrated(true);
+    });
   }, []);
 
   const add = useCallback(
-    (payload: Omit<Transaction, 'id' | 'time'>) => {
-      const tx: Transaction = {
-        ...payload,
-        id: Date.now(),
-        time: new Date().toLocaleTimeString('ko-KR', {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-      };
-      setTransactions(prev => {
-        const next = [...prev, tx];
-        saveTransactions(next);
-        return next;
+    async (payload: Omit<Transaction, 'id' | 'time'>) => {
+      const time = new Date().toLocaleTimeString('ko-KR', {
+        hour: '2-digit',
+        minute: '2-digit',
       });
+      const created = await addTransaction({ ...payload, time });
+      if (created) {
+        setTransactions(prev => [created, ...prev]);
+      }
     },
     []
   );
 
-  const remove = useCallback((id: number) => {
-    setTransactions(prev => {
-      const next = prev.filter(t => t.id !== id);
-      saveTransactions(next);
-      return next;
-    });
+  const remove = useCallback(async (id: number) => {
+    const ok = await deleteTransaction(id);
+    if (ok) {
+      setTransactions(prev => prev.filter(t => t.id !== id));
+    }
   }, []);
 
   const byDate = useCallback(

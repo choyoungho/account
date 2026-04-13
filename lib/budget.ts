@@ -1,3 +1,5 @@
+import { supabase } from './supabase';
+
 // ─── 타입 ─────────────────────────────────────────────
 export type TxType = 'income' | 'expense';
 
@@ -63,19 +65,67 @@ export function sumBy(txs: Transaction[], type: TxType): number {
   return txs.filter(t => t.type === type).reduce((s, t) => s + t.amount, 0);
 }
 
-// ─── localStorage ────────────────────────────────────
-const LS_KEY = 'budget_txs_next';
+// ─── Supabase DB ─────────────────────────────────────
+type DbRow = {
+  id: number;
+  type: string;
+  date: string;
+  amount: number;
+  category: string;
+  description: string;
+  time: string;
+};
 
-export function loadTransactions(): Transaction[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    return JSON.parse(localStorage.getItem(LS_KEY) || '[]');
-  } catch {
-    return [];
-  }
+function rowToTx(row: DbRow): Transaction {
+  return {
+    id: row.id,
+    type: row.type as TxType,
+    date: row.date,
+    amount: row.amount,
+    category: row.category,
+    desc: row.description,
+    time: row.time,
+  };
 }
 
-export function saveTransactions(txs: Transaction[]): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(LS_KEY, JSON.stringify(txs));
+export async function loadTransactions(): Promise<Transaction[]> {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .order('date', { ascending: false })
+    .order('time', { ascending: false });
+  if (error) { console.error(error); return []; }
+  return (data as DbRow[]).map(rowToTx);
+}
+
+export async function addTransaction(
+  tx: Omit<Transaction, 'id'>
+): Promise<Transaction | null> {
+  const { data, error } = await supabase
+    .from('transactions')
+    .insert({ type: tx.type, date: tx.date, amount: tx.amount, category: tx.category, description: tx.desc, time: tx.time })
+    .select()
+    .single();
+  if (error) { console.error(error); return null; }
+  return rowToTx(data as DbRow);
+}
+
+export async function deleteTransaction(id: number): Promise<boolean> {
+  const { error } = await supabase.from('transactions').delete().eq('id', id);
+  if (error) { console.error(error); return false; }
+  return true;
+}
+
+export async function updateTransaction(
+  id: number,
+  tx: Omit<Transaction, 'id'>
+): Promise<Transaction | null> {
+  const { data, error } = await supabase
+    .from('transactions')
+    .update({ type: tx.type, date: tx.date, amount: tx.amount, category: tx.category, description: tx.desc, time: tx.time })
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) { console.error(error); return null; }
+  return rowToTx(data as DbRow);
 }
